@@ -146,7 +146,7 @@ viewDefault : Html Msg
 viewDefault =
     div []
         [ img
-            [ src "../assets/computer_blindtouch.png"
+            [ src "./assets/computer_blindtouch.png"
             , style "width" "25%"
             , style "height" "25%"
             ]
