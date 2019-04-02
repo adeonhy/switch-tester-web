@@ -13,7 +13,7 @@ import Time
 
 
 claerInterval =
-    5
+    10
 
 
 urlOfSwitchesSpreadsheetJson =
@@ -38,6 +38,7 @@ type alias Model =
     , key : String
     , modifier : String
     , status : Status
+    , hitCount : Int
     }
 
 
@@ -49,7 +50,7 @@ type Status
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { count = 0, key = "", modifier = "", status = Loading }
+    ( { count = 0, key = "", modifier = "", status = Loading, hitCount = 0 }
     , Http.get
         { url = urlOfSwitchesSpreadsheetJson
         , expect = Http.expectJson GotResponse switchJsonDecoder
@@ -87,7 +88,11 @@ update msg model =
                 ( { model | count = model.count + 1 }, Cmd.none )
 
         Input (Character c) ->
-            ( { model | count = 0, key = String.fromChar c }, Cmd.none )
+            if model.key == String.fromChar c then
+                ( { model | count = 0, hitCount = model.hitCount + 1 }, Cmd.none )
+
+            else
+                ( { model | count = 0, key = String.fromChar c, hitCount = 1 }, Cmd.none )
 
         Input (Control s) ->
             ( { model | modifier = s }, Cmd.none )
@@ -112,14 +117,18 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div [ style "text-align" "center" ]
-        [ viewSwitch (switchOf model)
+        [ viewSwitch model
         , viewDebugInfo model
         ]
 
 
-viewSwitch : Maybe KeyMapping -> Html Msg
-viewSwitch mapping =
-    case mapping of
+viewSwitch : Model -> Html Msg
+viewSwitch model =
+    let
+        switch =
+            switchOf model
+    in
+    case switch of
         Nothing ->
             viewDefault
 
@@ -140,6 +149,7 @@ viewSwitch mapping =
                             ]
                             []
                       ]
+                    , [ p [] [ text ("押した回数: " ++ String.fromInt model.hitCount) ] ]
                     , viewSwitchAttr m
                     ]
                 )

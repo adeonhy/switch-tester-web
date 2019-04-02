@@ -5939,7 +5939,7 @@ var elm$http$Http$get = function (r) {
 };
 var author$project$Main$init = function (_n0) {
 	return _Utils_Tuple2(
-		{count: 0, key: '', modifier: '', status: author$project$Main$Loading},
+		{count: 0, hitCount: 0, key: '', modifier: '', status: author$project$Main$Loading},
 		elm$http$Http$get(
 			{
 				expect: A2(elm$http$Http$expectJson, author$project$Main$GotResponse, author$project$Main$switchJsonDecoder),
@@ -6880,11 +6880,18 @@ var author$project$Main$update = F2(
 			default:
 				if (msg.a.$ === 'Character') {
 					var c = msg.a.a;
-					return _Utils_Tuple2(
+					return _Utils_eq(
+						model.key,
+						elm$core$String$fromChar(c)) ? _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{count: 0, hitCount: model.hitCount + 1}),
+						elm$core$Platform$Cmd$none) : _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
 								count: 0,
+								hitCount: 0,
 								key: elm$core$String$fromChar(c)
 							}),
 						elm$core$Platform$Cmd$none);
@@ -6898,30 +6905,6 @@ var author$project$Main$update = F2(
 				}
 		}
 	});
-var elm$core$List$head = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return elm$core$Maybe$Just(x);
-	} else {
-		return elm$core$Maybe$Nothing;
-	}
-};
-var author$project$Main$switchOf = function (model) {
-	var _n0 = model.status;
-	if (_n0.$ === 'Tester') {
-		var mappings = _n0.a;
-		return elm$core$List$head(
-			A2(
-				elm$core$List$filter,
-				function (k) {
-					return _Utils_eq(k.key, model.key);
-				},
-				mappings));
-	} else {
-		return elm$core$Maybe$Nothing;
-	}
-};
 var elm$html$Html$div = _VirtualDom_node('div');
 var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
@@ -6959,6 +6942,30 @@ var author$project$Main$viewDebugInfo = function (model) {
 						elm$html$Html$text(model.modifier)
 					]))
 			]));
+};
+var elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return elm$core$Maybe$Just(x);
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
+};
+var author$project$Main$switchOf = function (model) {
+	var _n0 = model.status;
+	if (_n0.$ === 'Tester') {
+		var mappings = _n0.a;
+		return elm$core$List$head(
+			A2(
+				elm$core$List$filter,
+				function (k) {
+					return _Utils_eq(k.key, model.key);
+				},
+				mappings));
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
 };
 var elm$html$Html$img = _VirtualDom_node('img');
 var elm$html$Html$p = _VirtualDom_node('p');
@@ -7031,11 +7038,12 @@ var author$project$Main$viewSwitchAttr = function (m) {
 };
 var elm$html$Html$dl = _VirtualDom_node('dl');
 var elm$html$Html$h2 = _VirtualDom_node('h2');
-var author$project$Main$viewSwitch = function (mapping) {
-	if (mapping.$ === 'Nothing') {
+var author$project$Main$viewSwitch = function (model) {
+	var _switch = author$project$Main$switchOf(model);
+	if (_switch.$ === 'Nothing') {
 		return author$project$Main$viewDefault;
 	} else {
-		var m = mapping.a;
+		var m = _switch.a;
 		return A2(
 			elm$html$Html$dl,
 			_List_Nil,
@@ -7065,6 +7073,17 @@ var author$project$Main$viewSwitch = function (mapping) {
 								]),
 							_List_Nil)
 						]),
+						_List_fromArray(
+						[
+							A2(
+							elm$html$Html$p,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text(
+									'押した回数: ' + elm$core$String$fromInt(model.hitCount))
+								]))
+						]),
 						author$project$Main$viewSwitchAttr(m)
 					])));
 	}
@@ -7078,8 +7097,7 @@ var author$project$Main$view = function (model) {
 			]),
 		_List_fromArray(
 			[
-				author$project$Main$viewSwitch(
-				author$project$Main$switchOf(model)),
+				author$project$Main$viewSwitch(model),
 				author$project$Main$viewDebugInfo(model)
 			]));
 };
