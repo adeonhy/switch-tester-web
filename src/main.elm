@@ -125,9 +125,23 @@ viewSwitch mapping =
 
         Just m ->
             dl []
-                (List.append
-                    [ h2 [] [ text ("押したスイッチ: " ++ m.switch) ] ]
-                    (viewSwitchAttr m)
+                (List.concat
+                    [ [ h2 [] [ text ("押したスイッチ: " ++ m.switch) ] ]
+                    , [ img
+                            [ src
+                                (if String.isEmpty m.image then
+                                    "./assets/no_image.png"
+
+                                 else
+                                    m.image
+                                )
+                            , style "width" "25%"
+                            , style "height" "25%"
+                            ]
+                            []
+                      ]
+                    , viewSwitchAttr m
+                    ]
                 )
 
 
@@ -223,6 +237,7 @@ type alias Cell =
 type alias KeyMapping =
     { key : String
     , switch : String
+    , image : String
     , attr : Dict String String
     , row : Int
     }
@@ -245,6 +260,7 @@ toKeyMappings cells =
         rows =
             Dict.values grouped
 
+        rowToRecord : List Cell -> KeyMapping
         rowToRecord cols =
             let
                 rowToRecord_ cols_ record =
@@ -263,12 +279,16 @@ toKeyMappings cells =
                                 "4" ->
                                     rowToRecord_ rest { record | switch = col.value }
 
+                                "5" ->
+                                    rowToRecord_ rest { record | image = col.value }
+
                                 _ ->
                                     rowToRecord_ rest { record | attr = Dict.insert (Dict.get col.col headers |> Maybe.withDefault "") col.value record.attr }
 
                         [] ->
                             record
             in
-            rowToRecord_ cols (KeyMapping "" "" Dict.empty 0)
+            rowToRecord_ cols (KeyMapping "" "" "" Dict.empty 0)
     in
     List.map rowToRecord rows
+        |> List.filter (\r -> not (String.isEmpty r.switch))

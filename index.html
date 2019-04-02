@@ -6670,10 +6670,11 @@ var author$project$Main$Tester = function (a) {
 	return {$: 'Tester', a: a};
 };
 var author$project$Main$claerInterval = 5;
-var author$project$Main$KeyMapping = F4(
-	function (key, _switch, attr, row) {
-		return {attr: attr, key: key, row: row, _switch: _switch};
+var author$project$Main$KeyMapping = F5(
+	function (key, _switch, image, attr, row) {
+		return {attr: attr, image: image, key: key, row: row, _switch: _switch};
 	});
+var elm$core$Basics$not = _Basics_not;
 var elm$core$Dict$values = function (dict) {
 	return A3(
 		elm$core$Dict$foldr,
@@ -6684,6 +6685,17 @@ var elm$core$Dict$values = function (dict) {
 		_List_Nil,
 		dict);
 };
+var elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2(elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
 var elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
 		if (maybe.$ === 'Just') {
@@ -6782,6 +6794,14 @@ var author$project$Main$toKeyMappings = function (cells) {
 								cols_ = $temp$cols_;
 								record = $temp$record;
 								continue rowToRecord_;
+							case '5':
+								var $temp$cols_ = rest,
+									$temp$record = _Utils_update(
+									record,
+									{image: col.value});
+								cols_ = $temp$cols_;
+								record = $temp$record;
+								continue rowToRecord_;
 							default:
 								var $temp$cols_ = rest,
 									$temp$record = _Utils_update(
@@ -6808,10 +6828,15 @@ var author$project$Main$toKeyMappings = function (cells) {
 		return A2(
 			rowToRecord_,
 			cols,
-			A4(author$project$Main$KeyMapping, '', '', elm$core$Dict$empty, 0));
+			A5(author$project$Main$KeyMapping, '', '', '', elm$core$Dict$empty, 0));
 	};
 	var rows = elm$core$Dict$values(grouped);
-	return A2(elm$core$List$map, rowToRecord, rows);
+	return A2(
+		elm$core$List$filter,
+		function (r) {
+			return !elm$core$String$isEmpty(r._switch);
+		},
+		A2(elm$core$List$map, rowToRecord, rows));
 };
 var elm$core$Basics$ge = _Utils_ge;
 var elm$core$Platform$Cmd$batch = _Platform_batch;
@@ -6872,17 +6897,6 @@ var author$project$Main$update = F2(
 						elm$core$Platform$Cmd$none);
 				}
 		}
-	});
-var elm$core$List$filter = F2(
-	function (isGood, list) {
-		return A3(
-			elm$core$List$foldr,
-			F2(
-				function (x, xs) {
-					return isGood(x) ? A2(elm$core$List$cons, x, xs) : xs;
-				}),
-			_List_Nil,
-			list);
 	});
 var elm$core$List$head = function (list) {
 	if (list.b) {
@@ -7025,19 +7039,34 @@ var author$project$Main$viewSwitch = function (mapping) {
 		return A2(
 			elm$html$Html$dl,
 			_List_Nil,
-			A2(
-				elm$core$List$append,
+			elm$core$List$concat(
 				_List_fromArray(
 					[
-						A2(
-						elm$html$Html$h2,
-						_List_Nil,
 						_List_fromArray(
-							[
-								elm$html$Html$text('押したスイッチ: ' + m._switch)
-							]))
-					]),
-				author$project$Main$viewSwitchAttr(m)));
+						[
+							A2(
+							elm$html$Html$h2,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text('押したスイッチ: ' + m._switch)
+								]))
+						]),
+						_List_fromArray(
+						[
+							A2(
+							elm$html$Html$img,
+							_List_fromArray(
+								[
+									elm$html$Html$Attributes$src(
+									elm$core$String$isEmpty(m.image) ? './assets/no_image.png' : m.image),
+									A2(elm$html$Html$Attributes$style, 'width', '25%'),
+									A2(elm$html$Html$Attributes$style, 'height', '25%')
+								]),
+							_List_Nil)
+						]),
+						author$project$Main$viewSwitchAttr(m)
+					])));
 	}
 };
 var author$project$Main$view = function (model) {
