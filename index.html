@@ -6669,7 +6669,7 @@ var author$project$Main$subscriptions = function (model) {
 var author$project$Main$Tester = function (a) {
 	return {$: 'Tester', a: a};
 };
-var author$project$Main$claerInterval = 5;
+var author$project$Main$claerInterval = 10;
 var author$project$Main$KeyMapping = F5(
 	function (key, _switch, image, attr, row) {
 		return {attr: attr, image: image, key: key, row: row, _switch: _switch};
@@ -6891,7 +6891,7 @@ var author$project$Main$update = F2(
 							model,
 							{
 								count: 0,
-								hitCount: 0,
+								hitCount: 1,
 								key: elm$core$String$fromChar(c)
 							}),
 						elm$core$Platform$Cmd$none);
@@ -7005,6 +7005,45 @@ var author$project$Main$viewDefault = A2(
 					elm$html$Html$text('スイッチを押してね！')
 				]))
 		]));
+var author$project$Main$orderOfAttr = elm$core$Dict$fromList(
+	_List_fromArray(
+		[
+			_Utils_Tuple2('コメント', 1),
+			_Utils_Tuple2('タイプ', 2),
+			_Utils_Tuple2('ストローク（mm）', 3),
+			_Utils_Tuple2('接点までの距離（mm）', 4),
+			_Utils_Tuple2('Actuation Force (gf)', 5),
+			_Utils_Tuple2('Tactile Force (gf)', 6),
+			_Utils_Tuple2('Bottom Out (gf)', 7)
+		]));
+var elm$core$Dict$member = F2(
+	function (key, dict) {
+		var _n0 = A2(elm$core$Dict$get, key, dict);
+		if (_n0.$ === 'Just') {
+			return true;
+		} else {
+			return false;
+		}
+	});
+var elm$core$List$sortBy = _List_sortBy;
+var author$project$Main$filterSortAttr = function (a) {
+	return A2(
+		elm$core$List$sortBy,
+		function (_n1) {
+			var k = _n1.a;
+			return A2(
+				elm$core$Maybe$withDefault,
+				999,
+				A2(elm$core$Dict$get, k, author$project$Main$orderOfAttr));
+		},
+		A2(
+			elm$core$List$filter,
+			function (_n0) {
+				var k = _n0.a;
+				return A2(elm$core$Dict$member, k, author$project$Main$orderOfAttr);
+			},
+			elm$core$Dict$toList(a)));
+};
 var elm$core$List$append = F2(
 	function (xs, ys) {
 		if (!ys.b) {
@@ -7034,7 +7073,7 @@ var author$project$Main$viewSwitchAttr = function (m) {
 							]))
 					]);
 			},
-			elm$core$Dict$toList(m.attr)));
+			author$project$Main$filterSortAttr(m.attr)));
 };
 var elm$html$Html$dl = _VirtualDom_node('dl');
 var elm$html$Html$h2 = _VirtualDom_node('h2');

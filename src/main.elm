@@ -157,13 +157,33 @@ viewSwitch model =
 
 viewSwitchAttr : KeyMapping -> List (Html Msg)
 viewSwitchAttr m =
-    Dict.toList m.attr
+    filterSortAttr m.attr
         |> List.map
             (\( k, v ) ->
                 [ p [] [ text (k ++ ": " ++ v) ]
                 ]
             )
         |> List.concat
+
+
+filterSortAttr : Dict String String -> List ( String, String )
+filterSortAttr a =
+    Dict.toList a
+        |> List.filter (\( k, _ ) -> Dict.member k orderOfAttr)
+        |> List.sortBy (\( k, _ ) -> Maybe.withDefault 999 (Dict.get k orderOfAttr))
+
+
+orderOfAttr : Dict String Int
+orderOfAttr =
+    Dict.fromList
+        [ ( "コメント", 1 )
+        , ( "タイプ", 2 )
+        , ( "ストローク（mm）", 3 )
+        , ( "接点までの距離（mm）", 4 )
+        , ( "Actuation Force (gf)", 5 )
+        , ( "Tactile Force (gf)", 6 )
+        , ( "Bottom Out (gf)", 7 )
+        ]
 
 
 viewDefault : Html Msg
@@ -245,12 +265,7 @@ type alias Cell =
 
 
 type alias KeyMapping =
-    { key : String
-    , switch : String
-    , image : String
-    , attr : Dict String String
-    , row : Int
-    }
+    { key : String, switch : String, image : String, attr : Dict String String, row : Int }
 
 
 toKeyMappings : List Cell -> List KeyMapping
