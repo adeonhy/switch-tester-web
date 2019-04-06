@@ -6669,10 +6669,10 @@ var author$project$Main$subscriptions = function (model) {
 var author$project$Main$Tester = function (a) {
 	return {$: 'Tester', a: a};
 };
-var author$project$Main$claerInterval = 10;
-var author$project$Main$KeyMapping = F5(
-	function (key, _switch, image, attr, row) {
-		return {attr: attr, image: image, key: key, row: row, _switch: _switch};
+var author$project$Main$claerInterval = 20;
+var author$project$Main$KeyMapping = F7(
+	function (key, _switch, image, switchType, price, attr, row) {
+		return {attr: attr, image: image, key: key, price: price, row: row, _switch: _switch, switchType: switchType};
 	});
 var elm$core$Basics$not = _Basics_not;
 var elm$core$Dict$values = function (dict) {
@@ -6802,6 +6802,22 @@ var author$project$Main$toKeyMappings = function (cells) {
 								cols_ = $temp$cols_;
 								record = $temp$record;
 								continue rowToRecord_;
+							case '6':
+								var $temp$cols_ = rest,
+									$temp$record = _Utils_update(
+									record,
+									{switchType: col.value});
+								cols_ = $temp$cols_;
+								record = $temp$record;
+								continue rowToRecord_;
+							case '7':
+								var $temp$cols_ = rest,
+									$temp$record = _Utils_update(
+									record,
+									{price: col.value});
+								cols_ = $temp$cols_;
+								record = $temp$record;
+								continue rowToRecord_;
 							default:
 								var $temp$cols_ = rest,
 									$temp$record = _Utils_update(
@@ -6828,7 +6844,7 @@ var author$project$Main$toKeyMappings = function (cells) {
 		return A2(
 			rowToRecord_,
 			cols,
-			A5(author$project$Main$KeyMapping, '', '', '', elm$core$Dict$empty, 0));
+			A7(author$project$Main$KeyMapping, '', '', '', '', '', elm$core$Dict$empty, 0));
 	};
 	var rows = elm$core$Dict$values(grouped);
 	return A2(
@@ -7077,6 +7093,7 @@ var author$project$Main$viewSwitchAttr = function (m) {
 };
 var elm$html$Html$dl = _VirtualDom_node('dl');
 var elm$html$Html$h2 = _VirtualDom_node('h2');
+var elm$html$Html$h3 = _VirtualDom_node('h3');
 var author$project$Main$viewSwitch = function (model) {
 	var _switch = author$project$Main$switchOf(model);
 	if (_switch.$ === 'Nothing') {
@@ -7096,7 +7113,7 @@ var author$project$Main$viewSwitch = function (model) {
 							_List_Nil,
 							_List_fromArray(
 								[
-									elm$html$Html$text('押したスイッチ: ' + m._switch)
+									elm$html$Html$text('押したスイッチ')
 								]))
 						]),
 						_List_fromArray(
@@ -7111,6 +7128,26 @@ var author$project$Main$viewSwitch = function (model) {
 									A2(elm$html$Html$Attributes$style, 'height', '25%')
 								]),
 							_List_Nil)
+						]),
+						_List_fromArray(
+						[
+							A2(
+							elm$html$Html$h3,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text(m._switch)
+								]))
+						]),
+						_List_fromArray(
+						[
+							A2(
+							elm$html$Html$p,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text('価格: ' + m.price)
+								]))
 						]),
 						_List_fromArray(
 						[

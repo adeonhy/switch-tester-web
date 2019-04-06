@@ -5,7 +5,7 @@ import Browser.Events exposing (onKeyDown)
 import Debug
 import Dict exposing (Dict)
 import Dict.Extra
-import Html exposing (Html, dd, div, dl, dt, h2, img, p, text)
+import Html exposing (Html, dd, div, dl, dt, h2, h3, img, p, text)
 import Html.Attributes exposing (src, style)
 import Http
 import Json.Decode exposing (Decoder, at, field, int, list, map3, string)
@@ -13,7 +13,7 @@ import Time
 
 
 claerInterval =
-    10
+    20
 
 
 urlOfSwitchesSpreadsheetJson =
@@ -135,7 +135,7 @@ viewSwitch model =
         Just m ->
             dl []
                 (List.concat
-                    [ [ h2 [] [ text ("押したスイッチ: " ++ m.switch) ] ]
+                    [ [ h2 [] [ text "押したスイッチ" ] ]
                     , [ img
                             [ src
                                 (if String.isEmpty m.image then
@@ -149,6 +149,8 @@ viewSwitch model =
                             ]
                             []
                       ]
+                    , [ h3 [] [ text m.switch ] ]
+                    , [ p [] [ text ("価格: " ++ m.price) ] ]
                     , [ p [] [ text ("押した回数: " ++ String.fromInt model.hitCount) ] ]
                     , viewSwitchAttr m
                     ]
@@ -265,7 +267,14 @@ type alias Cell =
 
 
 type alias KeyMapping =
-    { key : String, switch : String, image : String, attr : Dict String String, row : Int }
+    { key : String
+    , switch : String
+    , image : String
+    , switchType : String
+    , price : String
+    , attr : Dict String String
+    , row : Int
+    }
 
 
 toKeyMappings : List Cell -> List KeyMapping
@@ -307,13 +316,19 @@ toKeyMappings cells =
                                 "5" ->
                                     rowToRecord_ rest { record | image = col.value }
 
+                                "6" ->
+                                    rowToRecord_ rest { record | switchType = col.value }
+
+                                "7" ->
+                                    rowToRecord_ rest { record | price = col.value }
+
                                 _ ->
                                     rowToRecord_ rest { record | attr = Dict.insert (Dict.get col.col headers |> Maybe.withDefault "") col.value record.attr }
 
                         [] ->
                             record
             in
-            rowToRecord_ cols (KeyMapping "" "" "" Dict.empty 0)
+            rowToRecord_ cols (KeyMapping "" "" "" "" "" Dict.empty 0)
     in
     List.map rowToRecord rows
         |> List.filter (\r -> not (String.isEmpty r.switch))
