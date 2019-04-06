@@ -11040,7 +11040,7 @@ var author$project$Main$viewDefault = A2(
 			elm$html$Html$img,
 			_List_fromArray(
 				[
-					elm$html$Html$Attributes$src('./assets/computer_blindtouch.png'),
+					elm$html$Html$Attributes$src('../assets/computer_blindtouch.png'),
 					A2(elm$html$Html$Attributes$style, 'width', '25%'),
 					A2(elm$html$Html$Attributes$style, 'height', '25%')
 				]),
@@ -11144,7 +11144,7 @@ var author$project$Main$viewSwitch = function (model) {
 							_List_fromArray(
 								[
 									elm$html$Html$Attributes$src(
-									elm$core$String$isEmpty(m.image) ? './assets/no_image.png' : m.image),
+									elm$core$String$isEmpty(m.image) ? '../assets/no_image.png' : m.image),
 									A2(elm$html$Html$Attributes$style, 'width', '25%'),
 									A2(elm$html$Html$Attributes$style, 'height', '25%')
 								]),
@@ -11744,7 +11744,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51536" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63026" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

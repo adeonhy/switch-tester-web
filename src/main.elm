@@ -139,7 +139,7 @@ viewSwitch model =
                     , [ img
                             [ src
                                 (if String.isEmpty m.image then
-                                    "./assets/no_image.png"
+                                    "../assets/no_image.png"
 
                                  else
                                     m.image
@@ -192,7 +192,7 @@ viewDefault : Html Msg
 viewDefault =
     div []
         [ img
-            [ src "./assets/computer_blindtouch.png"
+            [ src "../assets/computer_blindtouch.png"
             , style "width" "25%"
             , style "height" "25%"
             ]
