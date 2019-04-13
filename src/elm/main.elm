@@ -5,8 +5,8 @@ import Browser.Events exposing (onKeyDown)
 import Debug
 import Dict exposing (Dict)
 import Dict.Extra
-import Html exposing (Html, dd, div, dl, dt, h2, h3, img, p, text)
-import Html.Attributes exposing (src, style)
+import Html exposing (Html, dd, div, dl, dt, h2, h3, img, p, span, text)
+import Html.Attributes exposing (class, src, style)
 import Http
 import Json.Decode exposing (Decoder, at, field, int, list, map3, string)
 import Time
@@ -116,56 +116,71 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div [ style "text-align" "center" ]
-        [ viewSwitch model
+    div [ class "container" ]
+        [ viewSwitchOrDefault model
         , viewDebugInfo model
         ]
 
 
-viewSwitch : Model -> Html Msg
-viewSwitch model =
-    let
-        switch =
-            switchOf model
-    in
-    case switch of
+viewSwitchOrDefault : Model -> Html Msg
+viewSwitchOrDefault model =
+    case switchOf model of
         Nothing ->
             viewDefault
 
-        Just m ->
-            dl []
-                (List.concat
-                    [ [ h2 [] [ text "押したスイッチ" ] ]
-                    , [ img
-                            [ src
-                                (if String.isEmpty m.image then
-                                    "../assets/no_image.png"
+        Just mapping ->
+            viewSwitch mapping
 
-                                 else
-                                    m.image
-                                )
-                            , style "width" "25%"
-                            , style "height" "25%"
-                            ]
-                            []
-                      ]
-                    , [ h3 [] [ text m.switch ] ]
-                    , [ p [] [ text ("価格: " ++ m.price) ] ]
-                    , [ p [] [ text ("押した回数: " ++ String.fromInt model.hitCount) ] ]
-                    , viewSwitchAttr m
+
+viewSwitch : KeyMapping -> Html Msg
+viewSwitch m =
+    div []
+        [ div [ class "summary" ]
+            [ viewSwitchImage m
+            , div [ class "summary-info" ]
+                [ p [ class "switch-comment" ] [ text m.comment ]
+                , p [ class "switch-name" ] [ text m.switch ]
+                , div [ class "right" ]
+                    [ span [ style "font-size" "60%" ] [ text "価格 " ]
+                    , span [ class "switch-price" ] [ text m.price ]
+                    , span [ style "font-size" "60%" ] [ text " 円" ]
                     ]
+                , p [ class "" ] [ text (m.switchType ++ "軸 / " ++ m.weight ++ "g") ]
+                ]
+            , div [ class "switch-detail" ]
+                [ viewSwitchAttr m ]
+            ]
+        ]
+
+
+viewSwitchImage : KeyMapping -> Html Msg
+viewSwitchImage m =
+    div [ class "summary-image" ]
+        [ img
+            [ src
+                (if String.isEmpty m.image then
+                    "../assets/no_image.png"
+
+                 else
+                    m.image
                 )
+            , class "switch-image"
+            ]
+            []
+        ]
 
 
-viewSwitchAttr : KeyMapping -> List (Html Msg)
+viewSwitchAttr : KeyMapping -> Html Msg
 viewSwitchAttr m =
-    filterSortAttr m.attr
-        |> List.map
+    dl []
+        (List.concatMap
             (\( k, v ) ->
-                [ p [] [ text (k ++ ": " ++ v) ]
+                [ dt [] [ text k ]
+                , dd [] [ text v ]
                 ]
             )
-        |> List.concat
+            (filterSortAttr m.attr)
+        )
 
 
 filterSortAttr : Dict String String -> List ( String, String )
@@ -193,8 +208,7 @@ viewDefault =
     div []
         [ img
             [ src "../assets/computer_blindtouch.png"
-            , style "width" "25%"
-            , style "height" "25%"
+            , class "switch-image"
             ]
             []
         , p []
@@ -204,7 +218,7 @@ viewDefault =
 
 viewDebugInfo : Model -> Html Msg
 viewDebugInfo model =
-    div [ style "color" "white" ]
+    div [ class "debug" ]
         [ div [] [ text (String.fromInt model.count) ]
         , div [] [ text model.key ]
         , div [] [ text model.modifier ]
@@ -272,6 +286,8 @@ type alias KeyMapping =
     , image : String
     , switchType : String
     , price : String
+    , weight : String
+    , comment : String
     , attr : Dict String String
     , row : Int
     }
@@ -322,13 +338,19 @@ toKeyMappings cells =
                                 "7" ->
                                     rowToRecord_ rest { record | price = col.value }
 
+                                "8" ->
+                                    rowToRecord_ rest { record | weight = col.value }
+
+                                "9" ->
+                                    rowToRecord_ rest { record | comment = col.value }
+
                                 _ ->
                                     rowToRecord_ rest { record | attr = Dict.insert (Dict.get col.col headers |> Maybe.withDefault "") col.value record.attr }
 
                         [] ->
                             record
             in
-            rowToRecord_ cols (KeyMapping "" "" "" "" "" Dict.empty 0)
+            rowToRecord_ cols (KeyMapping "" "" "" "" "" "" "" Dict.empty 0)
     in
     List.map rowToRecord rows
         |> List.filter (\r -> not (String.isEmpty r.switch))
