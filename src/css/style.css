@@ -10,6 +10,11 @@ body {
   height: 40%;
 }
 
+.default-image {
+  width: 25%;
+  height: 25%;
+}
+
 .summary-image {
   width: 30%;
   float: left;

@@ -208,7 +208,7 @@ viewDefault =
     div []
         [ img
             [ src "../assets/computer_blindtouch.png"
-            , class "switch-image"
+            , class "default-image"
             ]
             []
         , p []
