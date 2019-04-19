@@ -28,6 +28,7 @@ body {
 
 .switch-comment {
   font-size: 80%;
+  margin: 20px;
 }
 
 img.switch-image {
@@ -43,6 +44,10 @@ img.switch-image {
 
 .switch-price {
   font-size: 200%;
+}
+
+.switch-type {
+  margin: 20px;
 }
 
 .right {

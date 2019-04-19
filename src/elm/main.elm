@@ -145,7 +145,7 @@ viewSwitch m =
                     , span [ class "switch-price" ] [ text m.price ]
                     , span [ style "font-size" "60%" ] [ text " 円" ]
                     ]
-                , p [ class "" ] [ text (m.switchType ++ "軸 / " ++ m.weight ++ "g") ]
+                , p [ class "switch-type" ] [ text (m.switchType ++ "軸 / " ++ m.weight ++ "g") ]
                 ]
             , div [ class "switch-detail" ]
                 [ viewSwitchAttr m ]
