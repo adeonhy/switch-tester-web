@@ -54,12 +54,43 @@ img.switch-image {
   margin: 60px auto;
 }
 
-dt {
-  float: left;
+dl{
+  width: 50%;
+  display:flex;
+  flex-wrap: wrap;
+  border: 1px solid #ccc;
+  border-top: none;
 }
 
-dd {
-  margin-left: 200px;
+dt{
+  background: #ddd;
+  width: 80%;
+  padding: 10px;
+  box-sizing: border-box;
+  border-top: 1px solid #ccc; 
+}
+
+dd{
+  padding: 10px;
+  margin: 0;
+  border-left: 1px solid #ccc;
+  border-top: 1px solid #ccc; 
+  width: 20%;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+@media screen and (max-width: 320px) {
+  dl{
+    flex-flow: column nowrap;
+  }
+  dt,
+  dd{
+    width: 60%;
+  }
+  dd{
+    border-left: none;
+  }
 }
 
 .debug {
