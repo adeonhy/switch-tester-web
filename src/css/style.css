@@ -11,8 +11,8 @@ body {
 }
 
 .default-image {
-  width: 25%;
-  height: 25%;
+  width: 50%;
+  height: 50%;
 }
 
 .summary-image {
@@ -48,6 +48,10 @@ img.switch-image {
 
 .switch-type {
   margin: 20px;
+}
+
+.center {
+  text-align: center;
 }
 
 .right {

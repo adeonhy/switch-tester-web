@@ -20,6 +20,14 @@ urlOfSwitchesSpreadsheetJson =
     "https://spreadsheets.google.com/feeds/cells/1G0grm4xDFYO-9X4sWX7A8I2V7ag2H9fG2zTa2dnkgow/od6/public/values?alt=json"
 
 
+urlOfTopImage =
+    "https://www.dropbox.com/s/w9z5j7yh3h4rtzr/tester_top.png?raw=1"
+
+
+urlOfNoImage =
+    "https://www.dropbox.com/s/tipissf3lgqtom6/no_image.png?raw=1"
+
+
 main =
     Browser.element
         { init = init
@@ -159,7 +167,7 @@ viewSwitchImage m =
         [ img
             [ src
                 (if String.isEmpty m.image then
-                    "../assets/no_image.png"
+                    urlOfNoImage
 
                  else
                     m.image
@@ -205,14 +213,12 @@ orderOfAttr =
 
 viewDefault : Html Msg
 viewDefault =
-    div []
+    div [ class "center" ]
         [ img
-            [ src "../assets/computer_blindtouch.png"
+            [ src urlOfTopImage
             , class "default-image"
             ]
             []
-        , p []
-            [ text "スイッチを押してね！" ]
         ]
 
 
