@@ -154,6 +154,7 @@ viewSwitch m =
                     , span [ style "font-size" "60%" ] [ text " 円" ]
                     ]
                 , p [ class "switch-type" ] [ text (m.switchType ++ "軸 / " ++ m.weight ++ "g") ]
+                , p [ class "switch-type" ] [ text ("ピン数: " ++ m.pin) ]
                 ]
             , div [ class "switch-detail" ]
                 [ viewSwitchAttr m ]
@@ -294,8 +295,23 @@ type alias KeyMapping =
     , price : String
     , weight : String
     , comment : String
+    , pin : String
     , attr : Dict String String
     , row : Int
+    }
+
+
+defaultKeyMapping =
+    { key = ""
+    , switch = ""
+    , image = ""
+    , switchType = ""
+    , price = ""
+    , weight = ""
+    , comment = ""
+    , pin = ""
+    , attr = Dict.empty
+    , row = 0
     }
 
 
@@ -350,13 +366,16 @@ toKeyMappings cells =
                                 "9" ->
                                     rowToRecord_ rest { record | comment = col.value }
 
+                                "10" ->
+                                    rowToRecord_ rest { record | pin = col.value }
+
                                 _ ->
                                     rowToRecord_ rest { record | attr = Dict.insert (Dict.get col.col headers |> Maybe.withDefault "") col.value record.attr }
 
                         [] ->
                             record
             in
-            rowToRecord_ cols (KeyMapping "" "" "" "" "" "" "" Dict.empty 0)
+            rowToRecord_ cols defaultKeyMapping
     in
     List.map rowToRecord rows
         |> List.filter (\r -> not (String.isEmpty r.switch))
