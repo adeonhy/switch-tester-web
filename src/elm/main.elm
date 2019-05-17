@@ -28,6 +28,10 @@ urlOfNoImage =
     "https://www.dropbox.com/s/tipissf3lgqtom6/no_image.png?raw=1"
 
 
+urlOfNeji =
+    "https://www.dropbox.com/s/ynqfdvv2a1bikft/neji.jpg?raw=1"
+
+
 main =
     Browser.element
         { init = init
@@ -47,6 +51,7 @@ type alias Model =
     , modifier : String
     , status : Status
     , hitCount : Int
+    , history : List String
     }
 
 
@@ -58,7 +63,7 @@ type Status
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { count = 0, key = "", modifier = "", status = Loading, hitCount = 0 }
+    ( { count = 0, key = "", modifier = "", status = Loading, hitCount = 0, history = [] }
     , Http.get
         { url = urlOfSwitchesSpreadsheetJson
         , expect = Http.expectJson GotResponse switchJsonDecoder
@@ -90,7 +95,7 @@ update msg model =
 
         Tick _ ->
             if model.count >= claerInterval then
-                ( { model | count = 0, key = "", modifier = "" }, Cmd.none )
+                ( { model | count = 0, key = "", modifier = "", history = [] }, Cmd.none )
 
             else
                 ( { model | count = model.count + 1 }, Cmd.none )
@@ -100,7 +105,7 @@ update msg model =
                 ( { model | count = 0, hitCount = model.hitCount + 1 }, Cmd.none )
 
             else
-                ( { model | count = 0, key = String.fromChar c, hitCount = 1 }, Cmd.none )
+                ( { model | count = 0, key = String.fromChar c, hitCount = 1, history = String.fromChar c :: model.history }, Cmd.none )
 
         Input (Control s) ->
             ( { model | modifier = s }, Cmd.none )
@@ -125,7 +130,11 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div [ class "container" ]
-        [ viewSwitchOrDefault model
+        [ if isNeji model.history then
+            viewNeji
+
+          else
+            viewSwitchOrDefault model
         , viewDebugInfo model
         ]
 
@@ -223,12 +232,24 @@ viewDefault =
         ]
 
 
+viewNeji : Html Msg
+viewNeji =
+    div [ class "center" ]
+        [ img
+            [ src urlOfNeji
+            , class "default-image"
+            ]
+            []
+        ]
+
+
 viewDebugInfo : Model -> Html Msg
 viewDebugInfo model =
     div [ class "debug" ]
         [ div [] [ text (String.fromInt model.count) ]
         , div [] [ text model.key ]
         , div [] [ text model.modifier ]
+        , div [] [ text (String.join "" model.history) ]
         ]
 
 
@@ -240,6 +261,18 @@ switchOf model =
 
         _ ->
             Nothing
+
+
+isNeji : List String -> Bool
+isNeji history =
+    let
+        last4 =
+            List.take 4 history
+                |> List.reverse
+                |> String.join ""
+                |> String.toLower
+    in
+    last4 == "neji"
 
 
 
