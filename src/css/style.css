@@ -89,6 +89,10 @@ dd{
   box-sizing: border-box;
 }
 
+button {
+  font-size: 150%;
+}
+
 @media screen and (max-width: 320px) {
   dl{
     flex-flow: column nowrap;

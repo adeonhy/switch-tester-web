@@ -162,10 +162,10 @@ viewLoading =
 viewWeightCalculator : String -> Float -> Int -> Html Msg
 viewWeightCalculator switch weight count =
     div []
-        [ p [] [ text switch ]
-        , p [] [ text (String.fromInt count) ]
+        [ p [ class "switch-name" ] [ text switch ]
+        , p [ class "switch-price" ] [ text (String.fromInt count ++ "個") ]
         , p []
-            [ text (String.fromFloat weight) ]
+            [ text (String.fromFloat weight ++ "g/個") ]
         , div []
             [ countButton 10
             , countButton 20
@@ -188,7 +188,7 @@ viewWeightCalculator switch weight count =
             , countButton 8
             , countButton 9
             ]
-        , p [] [ text (String.fromFloat (toFloat count * weight)) ]
+        , p [ class "switch-price" ] [ text (String.fromFloat (toFloat count * weight) ++ "g") ]
         , button [ onClick ResetCount ] [ text "= 0" ]
         ]
 
