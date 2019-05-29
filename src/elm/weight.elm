@@ -194,9 +194,7 @@ viewWeightCalculator switch weight count =
         , p []
             [ text (String.fromFloat weight ++ "g/個") ]
         , div []
-            [ countButton 10
-            , countButton 20
-            , countButton 30
+            [ countButton 30
             , countButton 40
             , countButton 50
             , countButton 60
