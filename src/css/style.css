@@ -89,8 +89,48 @@ dd{
   box-sizing: border-box;
 }
 
-button {
+.button {
+  margin-top: 20px;
+  width: 80%;
   font-size: 150%;
+  position: relative;
+  display: inline-block;
+  height: 50px;
+  background-color: #668ad8;
+  box-shadow: inset 1px 1px 0 #fbc1d0;
+  border-bottom: 4px solid #627295;
+  border-radius: 4px;
+  color: #fff;
+  text-align: center;
+  text-decoration: none;
+  text-shadow: 0px 1px 0px #f56778;
+  line-height: 50px;
+  outline: none;
+}
+
+.button.reset {
+  background-color: #444444;
+  box-shadow: inset 1px 1px 0 #222222;
+  border-bottom: 4px solid #627295;
+  width: 30%;
+}
+
+.count-button {
+  width: 10%;
+  font-size: 150%;
+  position: relative;
+  display: inline-block;
+  height: 40px;
+  background-color: #668ad8;
+  box-shadow: inset 1px 1px 0 #fbc1d0;
+  border-bottom: 4px solid #627295;
+  border-radius: 4px;
+  color: #fff;
+  text-align: center;
+  text-decoration: none;
+  text-shadow: 0px 1px 0px #f56778;
+  line-height: 50px;
+  outline: none;
 }
 
 @media screen and (max-width: 320px) {

@@ -5,8 +5,8 @@ import Browser.Events exposing (onKeyDown)
 import Debug
 import Dict exposing (Dict)
 import Dict.Extra
-import Html exposing (Html, button, dd, div, dl, dt, h2, h3, img, p, span, text)
-import Html.Attributes exposing (class, src, style)
+import Html exposing (Html, a, button, dd, div, dl, dt, h2, h3, img, p, span, text)
+import Html.Attributes exposing (class, href, src, style)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode exposing (Decoder, at, field, int, list, map3, string)
@@ -14,7 +14,7 @@ import Time
 
 
 clearInterval =
-    20
+    60
 
 
 urlOfSwitchesSpreadsheetJson =
@@ -39,7 +39,7 @@ type alias Model =
     , switchCategory : Maybe String
     , switchName : Maybe String
     , clearCount : Int
-    , weightOfSwitches : Dict String Float
+    , switchAttrs : Dict String SwitchAttr
     , categories : Dict String (List String)
     }
 
@@ -49,9 +49,32 @@ initialModel =
     , switchCategory = Nothing
     , switchName = Nothing
     , clearCount = clearInterval
-    , weightOfSwitches = Dict.empty
+    , switchAttrs = Dict.empty
     , categories = Dict.empty
     }
+
+
+resetModel : Model -> Model
+resetModel model =
+    { initialModel | switchAttrs = model.switchAttrs, categories = model.categories }
+
+
+type alias SwitchAttr =
+    { name : String, weight : Float, color : String }
+
+
+weightOf : String -> Dict String SwitchAttr -> Float
+weightOf switch attrs =
+    Dict.get switch attrs
+        |> Maybe.map .weight
+        |> Maybe.withDefault 0
+
+
+colorOf : String -> Dict String SwitchAttr -> String
+colorOf switch attrs =
+    Dict.get switch attrs
+        |> Maybe.map .color
+        |> Maybe.withDefault "#000000"
 
 
 init : () -> ( Model, Cmd Msg )
@@ -83,7 +106,7 @@ update msg model =
     case msg of
         Tick _ ->
             if model.clearCount >= clearInterval then
-                ( { model | clearCount = 0, switchCategory = Nothing, switchName = Nothing }, Cmd.none )
+                ( resetModel model, Cmd.none )
 
             else
                 ( { model | clearCount = model.clearCount + 1 }, Cmd.none )
@@ -92,7 +115,7 @@ update msg model =
             ( { model | clearCount = 0, switchCategory = Just category }, Cmd.none )
 
         SelectSwitch switch ->
-            ( { model | clearCount = 0, switchName = Just switch }, Cmd.none )
+            ( { model | clearCount = 0, switchName = Just switch, switchCount = 0 }, Cmd.none )
 
         ResetCount ->
             ( { model | clearCount = 0, switchCount = 0 }, Cmd.none )
@@ -101,14 +124,14 @@ update msg model =
             ( { model | clearCount = 0, switchCount = model.switchCount + count }, Cmd.none )
 
         Reset ->
-            ( { model | clearCount = 0, switchCategory = Nothing, switchName = Nothing, switchCount = 0 }, Cmd.none )
+            ( resetModel model, Cmd.none )
 
         GotResponse result ->
             case result of
                 Ok cells ->
                     case buildSwitchData cells of
-                        ( c, w ) ->
-                            ( { model | weightOfSwitches = w, categories = c }, Cmd.none )
+                        ( c, a ) ->
+                            ( { model | switchAttrs = a, categories = c }, Cmd.none )
 
                 Err _ ->
                     ( model, Cmd.none )
@@ -131,7 +154,7 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div [ class "container" ]
-        [ if Dict.isEmpty model.weightOfSwitches then
+        [ if Dict.isEmpty model.switchAttrs then
             viewLoading
 
           else
@@ -139,7 +162,7 @@ view model =
                 Just switch ->
                     viewWeightCalculator
                         switch
-                        (Maybe.withDefault 0 (Dict.get switch model.weightOfSwitches))
+                        (weightOf switch model.switchAttrs)
                         model.switchCount
 
                 Nothing ->
@@ -148,8 +171,12 @@ view model =
                             viewCategories model.categories
 
                         Just category ->
-                            viewSwitches (Maybe.withDefault [] (Dict.get category model.categories))
-        , button [ onClick Reset ] [ text "reset" ]
+                            viewSwitches
+                                (List.filterMap
+                                    (\sw -> Dict.get sw model.switchAttrs)
+                                    (Maybe.withDefault [] (Dict.get category model.categories))
+                                )
+        , button [ class "button", class "reset", onClick Reset ] [ text "はじめにもどる" ]
 
         -- , p [] [ text (Debug.toString model) ]
         ]
@@ -162,7 +189,7 @@ viewLoading =
 viewWeightCalculator : String -> Float -> Int -> Html Msg
 viewWeightCalculator switch weight count =
     div []
-        [ p [ class "switch-name" ] [ text switch ]
+        [ h2 [] [ text switch ]
         , p [ class "switch-price" ] [ text (String.fromInt count ++ "個") ]
         , p []
             [ text (String.fromFloat weight ++ "g/個") ]
@@ -188,32 +215,57 @@ viewWeightCalculator switch weight count =
             , countButton 8
             , countButton 9
             ]
+        , button [ class "button", class "reset", onClick ResetCount ] [ text "個数クリア" ]
         , p [ class "switch-price" ] [ text (String.fromFloat (toFloat count * weight) ++ "g") ]
-        , button [ onClick ResetCount ] [ text "= 0" ]
         ]
 
 
 viewCategories : Dict String (List String) -> Html Msg
 viewCategories categories =
-    div []
-        (List.map
-            (\cate -> button [ onClick (SelectCategory cate) ] [ text cate ])
-            (Dict.keys categories)
-        )
+    div [ class "center" ]
+        [ h2 [] [ text "スイッチの種類をえらんでね" ]
+        , div []
+            (List.map
+                categoryButton
+                (Dict.keys categories)
+            )
+        ]
 
 
-viewSwitches : List String -> Html Msg
+viewSwitches : List SwitchAttr -> Html Msg
 viewSwitches switches =
-    div []
-        (List.map
-            (\switch -> button [ onClick (SelectSwitch switch) ] [ text switch ])
-            switches
-        )
+    div [ class "center" ]
+        [ h2 []
+            [ text "スイッチをえらんでね" ]
+        , div
+            []
+            (List.map
+                switchButton
+                switches
+            )
+        ]
+
+
+categoryButton : String -> Html Msg
+categoryButton category =
+    a [ href "#", class "button", onClick (SelectCategory category) ] [ text category ]
+
+
+switchButton : SwitchAttr -> Html Msg
+switchButton switch =
+    a
+        [ href "#"
+        , class "button"
+        , style "border-bottom-color" switch.color
+        , style "border-bottom-width" "10px"
+        , onClick (SelectSwitch switch.name)
+        ]
+        [ text switch.name ]
 
 
 countButton : Int -> Html Msg
 countButton count =
-    button [ onClick (AddCount count) ] [ text (String.fromInt count) ]
+    a [ href "#", class "count-button", onClick (AddCount count) ] [ text (String.fromInt count) ]
 
 
 
@@ -237,7 +289,7 @@ type alias Cell =
     { row : String, col : String, value : String }
 
 
-buildSwitchData : List Cell -> ( Dict String (List String), Dict String Float )
+buildSwitchData : List Cell -> ( Dict String (List String), Dict String SwitchAttr )
 buildSwitchData cells =
     let
         grouped =
@@ -248,12 +300,19 @@ buildSwitchData cells =
 
         reducer cols acc =
             case List.map .value cols of
-                [ category, switchName, weight ] ->
+                [ category, switchName, weight, color ] ->
                     case acc of
-                        ( categories, weights ) ->
+                        ( categories, attrs ) ->
                             let
-                                newWeights =
-                                    Dict.insert switchName (Maybe.withDefault 0 (String.toFloat weight)) weights
+                                newAttrs =
+                                    Dict.insert
+                                        switchName
+                                        (SwitchAttr
+                                            switchName
+                                            (Maybe.withDefault 0 (String.toFloat weight))
+                                            color
+                                        )
+                                        attrs
 
                                 newCategories =
                                     if Dict.member category categories then
@@ -269,7 +328,7 @@ buildSwitchData cells =
                                     else
                                         Dict.insert category [ switchName ] categories
                             in
-                            ( newCategories, newWeights )
+                            ( newCategories, newAttrs )
 
                 _ ->
                     ( Dict.empty, Dict.empty )
