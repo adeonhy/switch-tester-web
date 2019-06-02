@@ -158,6 +158,9 @@ viewSwitch m =
                 [ p [ class "switch-comment" ] [ text m.comment ]
                 , p [ class "switch-name" ] [ text m.switch ]
                 , div [ class "right" ]
+                    [ span [ class "switch-price", style "font-size" "100%" ] [ text m.stock ]
+                    ]
+                , div [ class "right" ]
                     [ span [ style "font-size" "60%" ] [ text "価格 " ]
                     , span [ class "switch-price" ] [ text m.price ]
                     , span [ style "font-size" "60%" ] [ text " 円" ]
@@ -329,6 +332,7 @@ type alias KeyMapping =
     , weight : String
     , comment : String
     , pin : String
+    , stock : String
     , attr : Dict String String
     , row : Int
     }
@@ -343,6 +347,7 @@ defaultKeyMapping =
     , weight = ""
     , comment = ""
     , pin = ""
+    , stock = ""
     , attr = Dict.empty
     , row = 0
     }
@@ -401,6 +406,9 @@ toKeyMappings cells =
 
                                 "10" ->
                                     rowToRecord_ rest { record | pin = col.value }
+
+                                "11" ->
+                                    rowToRecord_ rest { record | stock = col.value }
 
                                 _ ->
                                     rowToRecord_ rest { record | attr = Dict.insert (Dict.get col.col headers |> Maybe.withDefault "") col.value record.attr }
