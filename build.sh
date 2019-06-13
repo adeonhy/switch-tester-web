@@ -2,7 +2,5 @@
 
 rm -rf dist/*
 
-# dummy
-touch dist/sw.js
-
+cp public/* dist
 parcel build src/* -d dist --public-url '.'
