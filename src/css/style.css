@@ -152,6 +152,38 @@ dd{
   }
 }
 
+.help-icon {
+  margin-left: 5px;
+  width: 1em;
+  height: 1em;
+}
+
 .debug {
   color: white;
+}
+
+.overlay {
+  display: block !important;
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9;
+  background-color: rgba(0, 0, 0, .65);
+}
+
+.modal {
+  display: block !important;
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 99;
+  transform: translate(-50%, -50%);
+  max-width: 70vw;
+  max-height: 70vh;
+  box-sizing: border-box;
+  padding: 32px;
+  border-radius: 8px;
+  background-color: #fff;
 }
