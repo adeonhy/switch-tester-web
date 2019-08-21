@@ -5,8 +5,9 @@ import Browser.Events exposing (onKeyDown)
 import Debug
 import Dict exposing (Dict)
 import Dict.Extra
-import Html exposing (Html, dd, div, dl, dt, h2, h3, img, p, span, text)
+import Html exposing (Html, button, dd, div, dl, dt, h2, h3, img, p, span, text)
 import Html.Attributes exposing (class, src, style)
+import Html.Events exposing (onClick)
 import Http
 import Json.Decode exposing (Decoder, at, field, int, list, map3, string)
 import Time
@@ -52,6 +53,7 @@ type alias Model =
     , status : Status
     , hitCount : Int
     , history : List String
+    , help : Maybe Help
     }
 
 
@@ -61,9 +63,20 @@ type Status
     | Tester (List KeyMapping)
 
 
+type Help
+    = SwitchPins
+
+
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { count = 0, key = "", modifier = "", status = Loading, hitCount = 0, history = [] }
+    ( { count = 0
+      , key = ""
+      , modifier = ""
+      , status = Loading
+      , hitCount = 0
+      , history = []
+      , help = Nothing
+      }
     , Http.get
         { url = urlOfSwitchesSpreadsheetJson
         , expect = Http.expectJson GotResponse switchJsonDecoder
@@ -79,6 +92,8 @@ type Msg
     = Tick Time.Posix
     | Input Key
     | GotResponse (Result Http.Error (List Cell))
+    | ShowHelp Help
+    | HideHelp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -95,20 +110,26 @@ update msg model =
 
         Tick _ ->
             if model.count >= claerInterval then
-                ( { model | count = 0, key = "", modifier = "", history = [] }, Cmd.none )
+                ( { model | count = 0, key = "", modifier = "", history = [], help = Nothing }, Cmd.none )
 
             else
                 ( { model | count = model.count + 1 }, Cmd.none )
 
         Input (Character c) ->
             if model.key == String.fromChar c then
-                ( { model | count = 0, hitCount = model.hitCount + 1 }, Cmd.none )
+                ( { model | count = 0, hitCount = model.hitCount + 1, help = Nothing }, Cmd.none )
 
             else
-                ( { model | count = 0, key = String.fromChar c, hitCount = 1, history = String.fromChar c :: model.history }, Cmd.none )
+                ( { model | count = 0, key = String.fromChar c, hitCount = 1, history = String.fromChar c :: model.history, help = Nothing }, Cmd.none )
 
         Input (Control s) ->
             ( { model | modifier = s }, Cmd.none )
+
+        ShowHelp help ->
+            ( { model | help = Just help }, Cmd.none )
+
+        HideHelp ->
+            ( { model | help = Nothing }, Cmd.none )
 
 
 
@@ -136,6 +157,7 @@ view model =
           else
             viewSwitchOrDefault model
         , viewDebugInfo model
+        , viewHelp model.help
         ]
 
 
@@ -165,13 +187,22 @@ viewSwitch m =
                     , span [ class "switch-price" ] [ text m.price ]
                     , span [ style "font-size" "60%" ] [ text " 円" ]
                     ]
-                , p [ class "switch-type" ] [ text (m.switchType ++ "軸 / " ++ m.weight ++ "g") ]
-                , p [ class "switch-type" ] [ text ("ピン数: " ++ m.pin) ]
+                , p [ class "switch-type" ]
+                    [ text (m.switchType ++ "軸 / " ++ m.weight ++ "g") ]
+                , p [ class "switch-type" ]
+                    [ text ("ピン数: " ++ m.pin)
+                    , viewHelpButton SwitchPins
+                    ]
                 ]
             , div [ class "switch-detail" ]
                 [ viewSwitchAttr m ]
             ]
         ]
+
+
+viewHelpButton : Help -> Html Msg
+viewHelpButton help =
+    img [ src "question.svg", class "help-icon", onClick (ShowHelp help) ] []
 
 
 viewSwitchImage : KeyMapping -> Html Msg
@@ -276,6 +307,32 @@ isNeji history =
                 |> String.toLower
     in
     last4 == "neji"
+
+
+viewHelp : Maybe Help -> Html Msg
+viewHelp help =
+    case help of
+        Nothing ->
+            text ""
+
+        Just someHelp ->
+            div []
+                [ div [ class "modal" ] [ helpContentsOf someHelp ]
+                , div [ class "overlay", onClick HideHelp ] []
+                ]
+
+
+helpContentsOf : Help -> Html Msg
+helpContentsOf help =
+    case help of
+        SwitchPins ->
+            div []
+                [ img
+                    [ style "width" "100%"
+                    , src "https://yushakobo.jp/wp-content/uploads/2019/08/3pin5pin_.jpg"
+                    ]
+                    []
+                ]
 
 
 
