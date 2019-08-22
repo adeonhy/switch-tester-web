@@ -328,7 +328,7 @@ helpContentsOf help =
         SwitchPins ->
             div []
                 [ img
-                    [ style "width" "100%"
+                    [ class "help-image"
                     , src "https://yushakobo.jp/wp-content/uploads/2019/08/3pin5pin_.jpg"
                     ]
                     []
