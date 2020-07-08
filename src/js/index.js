@@ -1,5 +1,5 @@
 require('../css/style.css');
-const { Elm } = require('../elm/main.elm');
+const { Elm } = require('../Main.elm');
 
 console.log("pre elm init")
 var app = Elm.Main.init({

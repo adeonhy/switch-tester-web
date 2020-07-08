@@ -20,6 +20,9 @@ claerInterval =
 urlOfSwitchesSpreadsheetJson =
     "https://spreadsheets.google.com/feeds/cells/1G0grm4xDFYO-9X4sWX7A8I2V7ag2H9fG2zTa2dnkgow/od6/public/values?alt=json"
 
+urlOfStocksSpreadsheetJson =
+    "https://spreadsheets.google.com/feeds/cells/11aofIJxgDEI8NQXJBGAcBaFGkG5W-U5dhRkxPalG8uM/od6/public/values?alt=json"
+
 
 urlOfTopImage =
     "https://www.dropbox.com/s/w9z5j7yh3h4rtzr/tester_top.png?raw=1"
@@ -54,14 +57,14 @@ type alias Model =
     , hitCount : Int
     , history : List String
     , help : Maybe Help
+    , keyMappings: List KeyMapping
+    , stockDescriptions: List StockDescription
     }
-
 
 type Status
     = Initial
     | Loading
-    | Tester (List KeyMapping)
-
+    | Tester
 
 type Help
     = SwitchPins
@@ -76,11 +79,18 @@ init _ =
       , hitCount = 0
       , history = []
       , help = Nothing
+      , keyMappings = [] 
+      , stockDescriptions = [] 
       }
-    , Http.get
+    , Cmd.batch [ Http.get
         { url = urlOfSwitchesSpreadsheetJson
-        , expect = Http.expectJson GotResponse switchJsonDecoder
+        , expect = Http.expectJson GotSwitchResponse sheetJsonDecoder
         }
+      , Http.get
+        { url = urlOfStocksSpreadsheetJson
+        , expect = Http.expectJson GotStockResponse sheetJsonDecoder
+        }
+      ]
     )
 
 
@@ -91,7 +101,8 @@ init _ =
 type Msg
     = Tick Time.Posix
     | Input Key
-    | GotResponse (Result Http.Error (List Cell))
+    | GotSwitchResponse (Result Http.Error (List Cell))
+    | GotStockResponse (Result Http.Error (List Cell))
     | ShowHelp Help
     | HideHelp
 
@@ -99,12 +110,26 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        GotResponse result ->
+        GotSwitchResponse result ->
             case result of
                 Ok cells ->
-                    ( { model | status = Tester (toKeyMappings cells) }, Cmd.none )
+                  if List.isEmpty model.stockDescriptions then
+                    ( { model | status = Loading, keyMappings = toKeyMappings cells }, Cmd.none )
+                  else
+                    ( { model | status = Tester, keyMappings = toKeyMappings cells }, Cmd.none )
 
                 -- ( { model | modifier = Debug.toString (toKeyMappings cells) }, Cmd.none )
+                Err _ ->
+                    ( { model | modifier = "error" }, Cmd.none )
+
+        GotStockResponse result ->
+            case result of
+                Ok cells ->
+                  if List.isEmpty model.keyMappings then
+                    ( { model | status = Loading, stockDescriptions = toStockDescriptions cells }, Cmd.none )
+                  else
+                    ( { model | status = Tester, stockDescriptions = toStockDescriptions cells }, Cmd.none )
+
                 Err _ ->
                     ( { model | modifier = "error" }, Cmd.none )
 
@@ -167,12 +192,12 @@ viewSwitchOrDefault model =
         Nothing ->
             viewDefault
 
-        Just mapping ->
-            viewSwitch mapping
+        Just (keyMapping, stockDescription) ->
+            viewSwitch keyMapping stockDescription
 
 
-viewSwitch : KeyMapping -> Html Msg
-viewSwitch m =
+viewSwitch : KeyMapping -> StockDescription -> Html Msg
+viewSwitch m s =
     div []
         [ div [ class "summary" ]
             [ viewSwitchImage m
@@ -180,7 +205,7 @@ viewSwitch m =
                 [ p [ class "switch-comment" ] [ text m.comment ]
                 , p [ class "switch-name" ] [ text m.switch ]
                 , div [ class "right" ]
-                    [ span [ class "switch-price", style "font-size" "100%" ] [ text m.stock ]
+                    [ span [ class "switch-price", style "font-size" "100%" ] [ text s.stockDescription ]
                     ]
                 , div [ class "right" ]
                     [ span [ style "font-size" "60%" ] [ text "価格 " ]
@@ -287,12 +312,16 @@ viewDebugInfo model =
         ]
 
 
-switchOf : Model -> Maybe KeyMapping
+switchOf : Model -> Maybe (KeyMapping, StockDescription)
 switchOf model =
     case model.status of
-        Tester mappings ->
-            List.head (List.filter (\k -> k.key == model.key) mappings)
-
+        Tester ->
+          List.head (List.filter (\k -> k.key == model.key) model.keyMappings)
+          |> Maybe.andThen (\m ->
+                List.head (List.filter (\s -> s.name == m.switch) model.stockDescriptions)
+                  |> Maybe.map (\s -> (m, s))
+             )
+        
         _ ->
             Nothing
 
@@ -359,12 +388,10 @@ toKey string =
             Control string
 
 
+-- SpreadSheet JSON DECODER
 
--- Switch JSON DECODER
-
-
-switchJsonDecoder : Decoder (List Cell)
-switchJsonDecoder =
+sheetJsonDecoder : Decoder (List Cell)
+sheetJsonDecoder =
     at [ "feed", "entry" ] (list entryDecoder)
 
 
@@ -379,6 +406,7 @@ entryDecoder =
 type alias Cell =
     { row : String, col : String, value : String }
 
+-- Switch JSON DECODER
 
 type alias KeyMapping =
     { key : String
@@ -477,3 +505,66 @@ toKeyMappings cells =
     in
     List.map rowToRecord rows
         |> List.filter (\r -> not (String.isEmpty r.switch))
+
+
+-- Stock JSON DECODER
+
+type alias StockDescription =
+    { name : String
+    , stockDescription: String
+    }
+
+
+defaultStockDescription =
+    { name = ""
+    , stockDescription = ""
+    }
+
+
+toStockDescriptions : List Cell -> List StockDescription
+toStockDescriptions cells =
+    let
+        grouped : Dict String (List Cell)
+        grouped =
+            Dict.Extra.groupBy .row cells
+
+        headers =
+            Dict.get "1" grouped
+                |> Maybe.withDefault []
+                |> List.map (\c -> ( c.col, c.value ))
+                |> Dict.fromList
+
+        rows : List (List Cell)
+        rows =
+            Dict.values grouped
+
+        rowToRecord : List Cell -> StockDescription
+        rowToRecord cols =
+            let
+                rowToRecord_ cols_ record =
+                    case cols_ of
+                        col :: rest ->
+                            case col.col of
+                                "1" ->
+                                    rowToRecord_ rest { record | name = col.value }
+
+                                "2" ->
+                                    rowToRecord_ rest record
+
+                                "3" ->
+                                    rowToRecord_ rest record
+
+                                "4" ->
+                                    rowToRecord_ rest { record | stockDescription = col.value }
+                                
+                                _ ->
+                                    rowToRecord_ rest record
+
+
+                        [] ->
+                            record
+            in
+            rowToRecord_ cols defaultStockDescription
+    in
+    List.map rowToRecord rows
+        |> List.filter (\r -> not (String.isEmpty r.name))
