@@ -20,6 +20,7 @@ claerInterval =
 urlOfSwitchesSpreadsheetJson =
     "https://spreadsheets.google.com/feeds/cells/1G0grm4xDFYO-9X4sWX7A8I2V7ag2H9fG2zTa2dnkgow/od6/public/values?alt=json"
 
+
 urlOfStocksSpreadsheetJson =
     "https://spreadsheets.google.com/feeds/cells/11aofIJxgDEI8NQXJBGAcBaFGkG5W-U5dhRkxPalG8uM/od6/public/values?alt=json"
 
@@ -57,14 +58,16 @@ type alias Model =
     , hitCount : Int
     , history : List String
     , help : Maybe Help
-    , keyMappings: List KeyMapping
-    , stockDescriptions: List StockDescription
+    , keyMappings : List KeyMapping
+    , stockDescriptions : List StockDescription
     }
+
 
 type Status
     = Initial
     | Loading
     | Tester
+
 
 type Help
     = SwitchPins
@@ -79,19 +82,25 @@ init _ =
       , hitCount = 0
       , history = []
       , help = Nothing
-      , keyMappings = [] 
-      , stockDescriptions = [] 
+      , keyMappings = []
+      , stockDescriptions = []
       }
-    , Cmd.batch [ Http.get
-        { url = urlOfSwitchesSpreadsheetJson
-        , expect = Http.expectJson GotSwitchResponse sheetJsonDecoder
-        }
-      , Http.get
-        { url = urlOfStocksSpreadsheetJson
-        , expect = Http.expectJson GotStockResponse sheetJsonDecoder
-        }
-      ]
+    , reloadSheetCmd
     )
+
+
+reloadSheetCmd : Cmd Msg
+reloadSheetCmd =
+    Cmd.batch
+        [ Http.get
+            { url = urlOfSwitchesSpreadsheetJson
+            , expect = Http.expectJson GotSwitchResponse sheetJsonDecoder
+            }
+        , Http.get
+            { url = urlOfStocksSpreadsheetJson
+            , expect = Http.expectJson GotStockResponse sheetJsonDecoder
+            }
+        ]
 
 
 
@@ -113,10 +122,11 @@ update msg model =
         GotSwitchResponse result ->
             case result of
                 Ok cells ->
-                  if List.isEmpty model.stockDescriptions then
-                    ( { model | status = Loading, keyMappings = toKeyMappings cells }, Cmd.none )
-                  else
-                    ( { model | status = Tester, keyMappings = toKeyMappings cells }, Cmd.none )
+                    if List.isEmpty model.stockDescriptions then
+                        ( { model | status = Loading, keyMappings = toKeyMappings cells }, Cmd.none )
+
+                    else
+                        ( { model | status = Tester, keyMappings = toKeyMappings cells }, Cmd.none )
 
                 -- ( { model | modifier = Debug.toString (toKeyMappings cells) }, Cmd.none )
                 Err _ ->
@@ -125,17 +135,18 @@ update msg model =
         GotStockResponse result ->
             case result of
                 Ok cells ->
-                  if List.isEmpty model.keyMappings then
-                    ( { model | status = Loading, stockDescriptions = toStockDescriptions cells }, Cmd.none )
-                  else
-                    ( { model | status = Tester, stockDescriptions = toStockDescriptions cells }, Cmd.none )
+                    if List.isEmpty model.keyMappings then
+                        ( { model | status = Loading, stockDescriptions = toStockDescriptions cells }, Cmd.none )
+
+                    else
+                        ( { model | status = Tester, stockDescriptions = toStockDescriptions cells }, Cmd.none )
 
                 Err _ ->
                     ( { model | modifier = "error" }, Cmd.none )
 
         Tick _ ->
             if model.count >= claerInterval then
-                ( { model | count = 0, key = "", modifier = "", history = [], help = Nothing }, Cmd.none )
+                ( { model | count = 0, key = "", modifier = "", history = [], help = Nothing }, reloadSheetCmd )
 
             else
                 ( { model | count = model.count + 1 }, Cmd.none )
@@ -192,7 +203,7 @@ viewSwitchOrDefault model =
         Nothing ->
             viewDefault
 
-        Just (keyMapping, stockDescription) ->
+        Just ( keyMapping, stockDescription ) ->
             viewSwitch keyMapping stockDescription
 
 
@@ -312,16 +323,17 @@ viewDebugInfo model =
         ]
 
 
-switchOf : Model -> Maybe (KeyMapping, StockDescription)
+switchOf : Model -> Maybe ( KeyMapping, StockDescription )
 switchOf model =
     case model.status of
         Tester ->
-          List.head (List.filter (\k -> k.key == model.key) model.keyMappings)
-          |> Maybe.andThen (\m ->
-                List.head (List.filter (\s -> s.name == m.switch) model.stockDescriptions)
-                  |> Maybe.map (\s -> (m, s))
-             )
-        
+            List.head (List.filter (\k -> k.key == model.key) model.keyMappings)
+                |> Maybe.andThen
+                    (\m ->
+                        List.head (List.filter (\s -> s.name == m.switch) model.stockDescriptions)
+                            |> Maybe.map (\s -> ( m, s ))
+                    )
+
         _ ->
             Nothing
 
@@ -388,7 +400,9 @@ toKey string =
             Control string
 
 
+
 -- SpreadSheet JSON DECODER
+
 
 sheetJsonDecoder : Decoder (List Cell)
 sheetJsonDecoder =
@@ -406,7 +420,10 @@ entryDecoder =
 type alias Cell =
     { row : String, col : String, value : String }
 
+
+
 -- Switch JSON DECODER
+
 
 type alias KeyMapping =
     { key : String
@@ -507,11 +524,13 @@ toKeyMappings cells =
         |> List.filter (\r -> not (String.isEmpty r.switch))
 
 
+
 -- Stock JSON DECODER
+
 
 type alias StockDescription =
     { name : String
-    , stockDescription: String
+    , stockDescription : String
     }
 
 
@@ -556,10 +575,9 @@ toStockDescriptions cells =
 
                                 "4" ->
                                     rowToRecord_ rest { record | stockDescription = col.value }
-                                
+
                                 _ ->
                                     rowToRecord_ rest record
-
 
                         [] ->
                             record
