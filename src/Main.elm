@@ -2,7 +2,6 @@ module Main exposing (Model, Msg(..), init, main, update, view)
 
 import Browser
 import Browser.Events exposing (onKeyDown)
-import Debug
 import Dict exposing (Dict)
 import Dict.Extra
 import Html exposing (Html, button, dd, div, dl, dt, h2, h3, img, p, span, text)
@@ -71,6 +70,7 @@ type Status
 
 type Help
     = SwitchPins
+    | SwitchTypes
 
 
 init : () -> ( Model, Cmd Msg )
@@ -224,7 +224,9 @@ viewSwitch m s =
                     , span [ style "font-size" "60%" ] [ text " 円" ]
                     ]
                 , p [ class "switch-type" ]
-                    [ text (m.switchType ++ "軸 / " ++ m.weight ++ "g") ]
+                    [ text (m.switchType ++ "軸 / " ++ m.weight ++ "g")
+                    , viewHelpButton SwitchTypes
+                    ]
                 , p [ class "switch-type" ]
                     [ text ("ピン数: " ++ m.pin)
                     , viewHelpButton SwitchPins
@@ -371,6 +373,15 @@ helpContentsOf help =
                 [ img
                     [ class "help-image"
                     , src "https://yushakobo.jp/wp-content/uploads/2019/08/3pin5pin_.jpg"
+                    ]
+                    []
+                ]
+
+        SwitchTypes ->
+            div []
+                [ img
+                    [ class "help-image"
+                    , src "https://www.dropbox.com/s/bvukktg45977j0r/switchtester_help_switchtypes.jpg?raw=1"
                     ]
                     []
                 ]
