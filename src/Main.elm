@@ -29,7 +29,7 @@ urlOfTopImage =
 
 
 urlOfNoImage =
-    "https://www.dropbox.com/s/tipissf3lgqtom6/no_image.png?raw=1"
+    "tester_top.png"
 
 
 urlOfNeji =
