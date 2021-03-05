@@ -25,11 +25,11 @@ urlOfStocksSpreadsheetJson =
 
 
 urlOfTopImage =
-    "https://www.dropbox.com/s/w9z5j7yh3h4rtzr/tester_top.png?raw=1"
+    "tester_top.png"
 
 
 urlOfNoImage =
-    "tester_top.png"
+    "https://www.dropbox.com/s/tipissf3lgqtom6/no_image.png?raw=1"
 
 
 urlOfNeji =
